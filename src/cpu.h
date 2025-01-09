@@ -32,12 +32,14 @@ class CPU {
 
     uint32_t pc;
     RunState state;
+    uint32_t frequency_cap;
 
     public:
     string lookup(uint32_t inst);
     string lookup_current();
 
     void run();
+    void cap(uint32_t freq); //cap at 0 means no frequency cap
     void run_until_opcode(uint32_t oc);
     void reset();
 
