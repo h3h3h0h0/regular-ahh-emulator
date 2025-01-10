@@ -1,17 +1,20 @@
+#pragma once
 #include <iostream>
 #include <algorithm>
 #include <string>
 #include <map>
 #include <cstdint>
 #include <set>
+#include <sstream>
 #include "memory.h"
 
 using namespace std;
 
-enum RunState {
+enum runstate {
     READY,
     RUNNING,
-    ERROR
+    ERROR,
+    DONE //if the execution didn't error out, but the call to exit was performed
 };
 
 class CPU {
@@ -32,8 +35,11 @@ class CPU {
     int32_t hi, lo;
 
     uint32_t pc;
-    RunState state;
+    runstate state;
     uint32_t frequency_cap;
+    vector<string> errors;
+    //separating the loading and execution stages allows for the checking of instruction decoding
+    uint32_t current_instruction;
 
     public:
     string lookup(uint32_t inst);
@@ -41,12 +47,14 @@ class CPU {
 
     void run();
     void cap(uint32_t freq); //cap at 0 means no frequency cap
-    void run_until_opcode(uint32_t oc);
+    void set_stop_on_error(bool yn); //the friend methods that implement the operations COULD throw an error (e.g. illegal memory access), this toggles if run will stop if that is the case
     void reset();
+    vector<string> get_errors();
+    void clear_error();
 
     void execute(); //execute next instruction
     bool load(); //load instruction @ PC
-    bool load_at(uint32_t inst); //load from a spot in memory (bool to track if we actually loaded a valid address)
+    bool load_at(uint32_t inst); //load from a spot in memory (bool to track if we actually loaded a valid address), also sets PC to point there
     uint32_t get_pc(); //what is the current program counter?
     void set_register(uint8_t reg, int32_t val); //can be used for debug, also used by instructions to set registers
     void set_breakpoint(uint32_t location);

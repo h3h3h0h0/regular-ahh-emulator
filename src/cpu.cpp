@@ -105,15 +105,77 @@ void xori(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
 
 //memory load and store operations (goes in imm_instructions)
 void lb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
-    
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, BYTE);
+    if(!result) {
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID BYTEREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
 }
-void lbu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void lh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void lhu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void lw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void sb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void sh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void sw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
+void lbu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, BYTE, true);
+    if(!result) {
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID UBYTEREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
+}
+void lh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, HALF);
+    if(!result) {
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID HALFREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
+}
+void lhu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, HALF, true);
+    if(!result) {
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID UHALFREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
+}
+void lw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, WORD, true);
+    if(!result) {
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID WORDREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
+}
+void sb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    bool result = c.mem->store(c.regs[rt], c.regs[rs], imm, BYTE);
+    if(!result) {
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
+}
+void sh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    bool result = c.mem->store(c.regs[rt], c.regs[rs], imm, HALF);
+    if(!result) {
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
+}
+void sw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    bool result = c.mem->store(c.regs[rt], c.regs[rs], imm, WORD);
+    if(!result) {
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
+}
 
 //branch instructions (goes in imm_instructions)
 void beq(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
@@ -136,3 +198,23 @@ void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
 void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
 void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
 
+string CPU::lookup(uint32_t inst) {}
+string CPU::lookup_current() {}
+
+void CPU::run() {}
+void CPU::cap(uint32_t freq) {}
+void CPU::set_stop_on_error(bool yn) {}
+void CPU::reset() {}
+vector<string> CPU::get_errors() {}
+void CPU::clear_error() {}
+
+void CPU::execute() {}
+bool CPU::load() {}
+bool CPU::load_at(uint32_t inst) {}
+uint32_t CPU::get_pc() {}
+void CPU::set_register(uint8_t reg, int32_t val) {}
+void CPU::set_breakpoint(uint32_t location) {}
+void CPU::remove_breakpoint(uint32_t location) {}
+
+CPU::CPU(Memory *m) {}
+CPU::~CPU() {}
