@@ -25,6 +25,10 @@
 
 #define JSHIFT 0
 
+//LHI and LLO instruction masks
+#define HIMASK 0b11111111111111110000000000000000
+#define LOMASK 0b00000000000000001111111111111111
+
 void add(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
     c.regs[rd] = c.regs[rs]+c.regs[rt];
 }
@@ -178,25 +182,71 @@ void sw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
 }
 
 //branch instructions (goes in imm_instructions)
-void beq(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void bgtz(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void blez(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
-void bne(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
+void beq(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    if(c.regs[rs] == c.regs[rt]) {
+        c.pc += (imm<<2);
+    }
+}
+void bgtz(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    if(c.regs[rs] > 0) {
+        c.pc += (imm<<2);
+    }
+}
+void blez(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    if(c.regs[rs] <= 0) {
+        c.pc += (imm<<2);
+    }
+}
+void bne(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    if(c.regs[rs] != c.regs[rt]) {
+        c.pc += (imm<<2);
+    }
+}
 
 //jump instructions (goes in jmp_instructions)
-void jmp(CPU &c, uint8_t rs, int32_t imm);
-void jal(CPU &c, uint8_t rs, int32_t imm);
-void jalr(CPU &c, uint8_t rs, int32_t imm);
-void jr(CPU &c, uint8_t rs, int32_t imm);
-void trap(CPU &c, uint8_t rs, int32_t imm);
+void jmp(CPU &c, uint8_t rs, int32_t imm) {
+    c.pc += (imm<<2);
+}
+void jal(CPU &c, uint8_t rs, int32_t imm) {
+    c.regs[31] = c.pc;
+    c.pc += (imm<<2);
+}
+void jalr(CPU &c, uint8_t rs, int32_t imm) {
+    c.regs[31] = c.pc;
+    c.pc = c.regs[rs];
+}
+void jr(CPU &c, uint8_t rs, int32_t imm) {
+    c.pc = c.regs[rs];
+}
+void trap(CPU &c, uint8_t rs, int32_t imm) {
+    if(!c.syscalls.count(imm)) { //do we have an actual syscall registered?
+        c.state = ERROR;
+        ostringstream oss;
+        oss<<hex<<uppercase<<"INVALID SYSCALL PC: "<<c.pc<<" NUMBER: "<<imm<<endl;
+        c.errors.push_back(oss.str());
+    }
+    c.syscalls[imm](c);
+}
 
 //misc instructions (depends)
-void lhi(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
-void llo(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
-void mfhi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
+void lhi(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    c.regs[rt] = (c.regs[rt]&LOMASK)+(((int32_t)imm)<<16);
+}
+void llo(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    c.regs[rt] = (c.regs[rt]&HIMASK)+imm;
+}
+void mfhi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
+    c.regs[rt] = c.hi;
+}
+void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
+    c.regs[rt] = c.lo;
+}
+void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
+    c.hi = c.regs[rt];
+}
+void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
+    c.lo = c.regs[rt];
+}
 
 string CPU::lookup(uint32_t inst) {}
 string CPU::lookup_current() {}
