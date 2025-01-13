@@ -12,8 +12,8 @@
 using namespace std;
 
 enum runstate {
-    READY,
-    RUNNING,
+    READY, //an instruction is loaded in and ready to execute
+    RUN, //we've started executing the loaded instruction, so if we see this state outside of the execute function we can assume that it finished without error
     ERROR,
     DONE //if the execution didn't error out, but the call to exit was performed
 };
@@ -62,9 +62,9 @@ class CPU {
     void set_stop_on_error(bool yn); //the friend methods that implement the operations COULD throw an error (e.g. illegal memory access), this toggles if run will stop if that is the case
     void reset();
     vector<string> get_errors();
-    void clear_error();
+    void clear_logs(); //clear error logs
+    void clear_state(); //resets state to WAITING (waiting for next instruction)
 
-    bool execute_with(uint32_t inst); //execute provided instruction (this is meant to be a debug environment and not seure by any means), will NOT cause error status if instruction invalid but will do so if instruction is valid but throws some other error
     void execute(); //execute next instruction
     bool load(); //load instruction @ PC
     bool load_at(uint32_t loc); //load from a spot in memory (bool to track if we actually loaded a valid address), also sets PC to point there

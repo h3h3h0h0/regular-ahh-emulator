@@ -294,28 +294,35 @@ void CPU::cap(uint32_t freq) {
 }
 void CPU::set_stop_on_error(bool yn) {}
 void CPU::reset() {}
-vector<string> CPU::get_errors() {}
-void CPU::clear_error() {}
+vector<string> CPU::get_errors() {
+    return errors;
+}
+void CPU::clear_logs() {
+    errors.clear();
+}
+void CPU::clear_state() {
+    state = RUN; //lets you load the next instruction
+}
 
-bool CPU::execute_with(uint32_t inst) {
-    split_instruction si = make_split(inst);
+void CPU::execute() {
+    if(state != READY) return;
+    state = RUN;
+    uint32_t old_pc = pc;
+    pc += 4;
+    regs[0] = 0; //special property of register 0
+    split_instruction si = make_split(current_instruction);
+    bool valid = true;
     if(si.o == 0) { //a REG instruction
-        if(!reg_instructions.count(si.f)) return false;
+        if(!reg_instructions.count(si.f)) valid = false;
         reg_instructions[si.f].first(*this, si.d, si.s, si.t, si.a);
     } else { //a ROOT instruction
         if(jmp_instructions.count(si.o)) {
             jmp_instructions[si.o].first(*this, si.j_imm);
         } else if(imm_instructions.count(si.o)) {
             imm_instructions[si.f].first(*this, si.s, si.t, si.i_imm);
-        } else return false;
+        } else valid = false;
     }
-}
-void CPU::execute() {
-    uint32_t old_pc = pc;
-    pc += 4;
-    regs[0] = 0;
-    bool valid = execute_with(current_instruction);
-    regs[0] = 0;
+    regs[0] = 0; //special property of register 0
     if(!valid) {
         state = ERROR;
         ostringstream oss;
@@ -327,9 +334,16 @@ bool CPU::load() {
     return load_at(pc);
 }
 bool CPU::load_at(uint32_t loc) {
+    if(state != RUN) return false;
     int32_t temp = 0;
-    if(!mem->load(temp, loc, 0, WORD)) return false;
+    if(!mem->load(temp, loc, 0, WORD)) {
+        state = ERROR;
+        return false;
+    }
+    //only set PC and current instruction if our memory load was successful
+    pc = loc;
     current_instruction = (uint32_t)temp;
+    state = READY;
     return true;
 }
 uint32_t CPU::get_pc() {
