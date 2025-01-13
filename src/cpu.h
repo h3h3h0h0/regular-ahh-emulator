@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <set>
 #include <sstream>
+#include <bitset>
 #include "memory.h"
 
 using namespace std;
@@ -17,14 +18,25 @@ enum runstate {
     DONE //if the execution didn't error out, but the call to exit was performed
 };
 
+struct split_instruction {
+    uint8_t o;
+    uint8_t s;
+    uint8_t t;
+    uint8_t d;
+    uint8_t a;
+    uint8_t f;
+    int16_t i_imm;
+    int32_t j_imm;
+};
+split_instruction make_split(uint32_t instr);
+
 class CPU {
     protected: //to make extensions of the instruction set
-    map<uint8_t, void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t)> reg_instructions; //the 4th is for the shift value
-    map<uint8_t, void(*)(CPU&, uint8_t, uint8_t, int16_t)> imm_instructions;
-    map<uint8_t, void(*)(CPU&, uint8_t, int32_t)> jmp_instructions;
+    map<uint8_t, pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>> reg_instructions; //the 4th is for the shift value
+    map<uint8_t, pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>> imm_instructions;
+    map<uint8_t, pair<void(*)(CPU&, int32_t), string>> jmp_instructions;
+    static uint32_t const nop_code = 0;
 
-    map<uint8_t, string> reg_disassemblies; //instruction names (for debug)
-    map<uint8_t, string> root_disassemblies;
     set<uint32_t> breakpoints; //run() will stop at these
 
     map<int32_t, void(*)(CPU&)> syscalls; //system calls that happen when you call the trap instruction
@@ -52,9 +64,10 @@ class CPU {
     vector<string> get_errors();
     void clear_error();
 
+    bool execute_with(uint32_t inst); //execute provided instruction (this is meant to be a debug environment and not seure by any means), will NOT cause error status if instruction invalid but will do so if instruction is valid but throws some other error
     void execute(); //execute next instruction
     bool load(); //load instruction @ PC
-    bool load_at(uint32_t inst); //load from a spot in memory (bool to track if we actually loaded a valid address), also sets PC to point there
+    bool load_at(uint32_t loc); //load from a spot in memory (bool to track if we actually loaded a valid address), also sets PC to point there
     uint32_t get_pc(); //what is the current program counter?
     void set_register(uint8_t reg, int32_t val); //can be used for debug, also used by instructions to set registers
     void set_breakpoint(uint32_t location);
@@ -108,11 +121,13 @@ class CPU {
     friend void bne(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
 
     //jump instructions (goes in jmp_instructions)
-    friend void jmp(CPU &c, uint8_t rs, int32_t imm);
-    friend void jal(CPU &c, uint8_t rs, int32_t imm);
-    friend void jalr(CPU &c, uint8_t rs, int32_t imm);
-    friend void jr(CPU &c, uint8_t rs, int32_t imm);
-    friend void trap(CPU &c, uint8_t rs, int32_t imm);
+    friend void jmp(CPU &c, int32_t imm);
+    friend void jal(CPU &c, int32_t imm);
+    friend void trap(CPU &c, int32_t imm);
+
+    //jump-register instructions (goes in reg_instructions)
+    friend void jalr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a);
+    friend void jr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a);
 
     //misc instructions (depends)
     friend void lhi(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
@@ -168,11 +183,13 @@ void blez(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
 void bne(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
 
 //jump instructions (goes in jmp_instructions)
-void jmp(CPU &c, uint8_t rs, int32_t imm);
-void jal(CPU &c, uint8_t rs, int32_t imm);
-void jalr(CPU &c, uint8_t rs, int32_t imm);
-void jr(CPU &c, uint8_t rs, int32_t imm);
-void trap(CPU &c, uint8_t rs, int32_t imm);
+void jmp(CPU &c, int32_t imm);
+void jal(CPU &c, int32_t imm);
+void trap(CPU &c, int32_t imm);
+
+//jump-register instructions (goes in reg_instructions)
+void jalr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a);
+void jr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a);
 
 //misc instructions (depends)
 void lhi(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions

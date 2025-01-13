@@ -29,6 +29,8 @@
 #define HIMASK 0b11111111111111110000000000000000
 #define LOMASK 0b00000000000000001111111111111111
 
+#define HSHIFT 16
+
 void add(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
     c.regs[rd] = c.regs[rs]+c.regs[rt];
 }
@@ -113,7 +115,7 @@ void lb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID BYTEREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID BYTEREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -122,7 +124,7 @@ void lbu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID UBYTEREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID UBYTEREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -131,7 +133,7 @@ void lh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID HALFREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID HALFREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -140,7 +142,7 @@ void lhu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID UHALFREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID UHALFREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -149,7 +151,7 @@ void lw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID WORDREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID WORDREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -158,7 +160,7 @@ void sb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -167,7 +169,7 @@ void sh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -176,7 +178,7 @@ void sw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -204,33 +206,35 @@ void bne(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
 }
 
 //jump instructions (goes in jmp_instructions)
-void jmp(CPU &c, uint8_t rs, int32_t imm) {
+void jmp(CPU &c, int32_t imm) {
     c.pc += (imm<<2);
 }
-void jal(CPU &c, uint8_t rs, int32_t imm) {
+void jal(CPU &c, int32_t imm) {
     c.regs[31] = c.pc;
     c.pc += (imm<<2);
 }
-void jalr(CPU &c, uint8_t rs, int32_t imm) {
-    c.regs[31] = c.pc;
-    c.pc = c.regs[rs];
-}
-void jr(CPU &c, uint8_t rs, int32_t imm) {
-    c.pc = c.regs[rs];
-}
-void trap(CPU &c, uint8_t rs, int32_t imm) {
+void trap(CPU &c, int32_t imm) {
     if(!c.syscalls.count(imm)) { //do we have an actual syscall registered?
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID SYSCALL PC: "<<c.pc<<" NUMBER: "<<imm<<endl;
+        oss<<hex<<uppercase<<"INVALID SYSCALL PC: "<<c.pc<<" NUMBER: "<<imm;
         c.errors.push_back(oss.str());
     }
     c.syscalls[imm](c);
 }
 
+//jump-register instructions (goes in reg_instructions)
+void jalr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
+    c.regs[31] = c.pc;
+    c.pc = c.regs[rs];
+}
+void jr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
+    c.pc = c.regs[rs];
+}
+
 //misc instructions (depends)
 void lhi(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
-    c.regs[rt] = (c.regs[rt]&LOMASK)+(((int32_t)imm)<<16);
+    c.regs[rt] = (c.regs[rt]&LOMASK)+(((int32_t)imm)<<HSHIFT);
 }
 void llo(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     c.regs[rt] = (c.regs[rt]&HIMASK)+imm;
@@ -248,23 +252,100 @@ void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
     c.lo = c.regs[rt];
 }
 
-string CPU::lookup(uint32_t inst) {}
-string CPU::lookup_current() {}
+split_instruction make_split(uint32_t instr) {
+    split_instruction si;
+    si.o = ((uint32_t)(instr&OMASK))>>OSHIFT;
+    si.s = ((uint32_t)(instr&SMASK))>>SSHIFT;
+    si.t = ((uint32_t)(instr&TMASK))>>TSHIFT;
+    si.d = ((uint32_t)(instr&DMASK))>>DSHIFT;
+    si.a = ((uint32_t)(instr&AMASK))>>ASHIFT;
+    si.f = ((uint32_t)(instr&FMASK))>>FSHIFT;
+    si.i_imm = ((uint32_t)(instr&IMASK))>>ISHIFT;
+    si.j_imm = ((uint32_t)(instr&JMASK))>>JSHIFT;
+    return si;
+}
+
+string CPU::lookup(uint32_t inst) {
+    if(inst == nop_code) return "nop"; //this is technically sll $0, $0, 0 but we make a special exception because NOP instructions are important
+    split_instruction si = make_split(inst);
+    ostringstream oss;
+    if(si.o == 0) { //a REG instruction
+        if(!reg_instructions.count(si.f)) return "INVALID";
+        oss<<reg_instructions[si.f].second<<dec<<" s="<<si.s<<" t="<<si.t<<" d="<<si.d<<" a="<<si.a;
+        return oss.str();
+    } else { //a ROOT instruction
+        if(jmp_instructions.count(si.o)) {
+            oss<<jmp_instructions[si.o].second<<dec<<" imm="<<si.j_imm;
+            return oss.str();
+        } else if(imm_instructions.count(si.o)) {
+            oss<<imm_instructions[si.f].second<<dec<<" s="<<si.s<<" t="<<si.t<<" imm="<<si.i_imm;
+            return oss.str();
+        } else return "INVALID";
+    }
+}
+
+string CPU::lookup_current() {
+    lookup(current_instruction);
+}
 
 void CPU::run() {}
-void CPU::cap(uint32_t freq) {}
+void CPU::cap(uint32_t freq) {
+    frequency_cap = freq;
+}
 void CPU::set_stop_on_error(bool yn) {}
 void CPU::reset() {}
 vector<string> CPU::get_errors() {}
 void CPU::clear_error() {}
 
-void CPU::execute() {}
-bool CPU::load() {}
-bool CPU::load_at(uint32_t inst) {}
-uint32_t CPU::get_pc() {}
-void CPU::set_register(uint8_t reg, int32_t val) {}
-void CPU::set_breakpoint(uint32_t location) {}
-void CPU::remove_breakpoint(uint32_t location) {}
+bool CPU::execute_with(uint32_t inst) {
+    split_instruction si = make_split(inst);
+    if(si.o == 0) { //a REG instruction
+        if(!reg_instructions.count(si.f)) return false;
+        reg_instructions[si.f].first(*this, si.d, si.s, si.t, si.a);
+    } else { //a ROOT instruction
+        if(jmp_instructions.count(si.o)) {
+            jmp_instructions[si.o].first(*this, si.j_imm);
+        } else if(imm_instructions.count(si.o)) {
+            imm_instructions[si.f].first(*this, si.s, si.t, si.i_imm);
+        } else return false;
+    }
+}
+void CPU::execute() {
+    uint32_t old_pc = pc;
+    pc += 4;
+    regs[0] = 0;
+    bool valid = execute_with(current_instruction);
+    regs[0] = 0;
+    if(!valid) {
+        state = ERROR;
+        ostringstream oss;
+        oss<<"INVALID INSTRUCTION PC: "<<hex<<old_pc<<" INSTRUCTION WORD: "<<bitset<32>(current_instruction);
+        errors.push_back(oss.str());
+    }
+}
+bool CPU::load() {
+    return load_at(pc);
+}
+bool CPU::load_at(uint32_t loc) {
+    int32_t temp = 0;
+    if(!mem->load(temp, loc, 0, WORD)) return false;
+    current_instruction = (uint32_t)temp;
+    return true;
+}
+uint32_t CPU::get_pc() {
+    return pc;
+}
+void CPU::set_register(uint8_t reg, int32_t val) {
+    if(reg == 0) val = 0;
+    if(reg >= 32) return;
+    regs[reg] = val;
+}
+void CPU::set_breakpoint(uint32_t location) {
+    breakpoints.insert(location);
+}
+void CPU::remove_breakpoint(uint32_t location) {
+    if(breakpoints.count(location)) breakpoints.erase(location);
+}
 
 CPU::CPU(Memory *m) {}
 CPU::~CPU() {}
