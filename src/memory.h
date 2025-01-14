@@ -5,9 +5,9 @@
 #include <map>
 #include <cstdint>
 #include <vector>
-#include "mmdevice.h"
+//#include "mmdevice.h"
 #include <cstdint>
-#include <compare>
+//#include <compare>
 
 
 using namespace std;
@@ -15,6 +15,7 @@ using namespace std;
 struct memrange {
     uint32_t start; //first address that is valid in this range
     uint32_t end; //last address that is valid in this range    
+    /*
     auto operator<=>(const memrange other) { //compare for overlap between two memranges
         if(end < other.start) return weak_ordering::less;
         else if(other.end < start) return weak_ordering::greater;
@@ -29,7 +30,7 @@ struct memrange {
         if(mr.start > addr) return weak_ordering::less;
         else if(addr <= mr.end) return weak_ordering::equivalent;
         else return weak_ordering::greater;
-    }
+    */
 };
 
 enum opsize { //how many times do we have to divide the word?
@@ -38,14 +39,17 @@ enum opsize { //how many times do we have to divide the word?
     BYTE = 2
 };
 
-class Memory {
+class Memory { //for now, we will just have the maximum amount of memory without any reserved ranges for IO
     protected:
     int32_t *data;
-    vector<pair<memrange, int>> mapping; //an index of -1 means access to main memory, any other means access to devices
-    vector<MMD*> devices;
+    vector<pair<memrange, int>> read_mapping; //an index of -1 means access to main memory, any other means access to devices
+    vector<pair<memrange, int>> write_mapping; 
+    //vector<MMD*> devices;
     public:
-    bool connect_device(MMD *d);
-    bool disconnect_device(MMD *d);
+    //bool connect_device(MMD *d);
+    //bool disconnect_device(MMD *d);
     bool load(int32_t &reg, uint32_t base, int16_t offset, opsize s, bool sign=false);
     bool store(int32_t &reg, uint32_t base, int16_t offset, opsize s);
+    Memory(memrange mainmem);
+    ~Memory();
 };

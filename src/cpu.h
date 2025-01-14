@@ -32,6 +32,7 @@ split_instruction make_split(uint32_t instr);
 
 class CPU {
     protected: //to make extensions of the instruction set
+    //maps slow af lol
     map<uint8_t, pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>> reg_instructions; //the 4th is for the shift value
     map<uint8_t, pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>> imm_instructions;
     map<uint8_t, pair<void(*)(CPU&, int32_t), string>> jmp_instructions;
@@ -74,7 +75,7 @@ class CPU {
     void remove_breakpoint(uint32_t location);
 
     CPU(Memory *m);
-    ~CPU();
+    ~CPU() = default;
 
     //declare all instruction functions as friend
     //register-only math (goes in reg_instructions)
@@ -132,10 +133,14 @@ class CPU {
     //misc instructions (depends)
     friend void lhi(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
     friend void llo(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
-    friend void mfhi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-    friend void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-    friend void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-    friend void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
+    friend void mfhi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+    friend void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+    friend void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+    friend void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+    friend void slt(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+    friend void sltu(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+    friend void slti(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
+    friend void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
 };
 
 //actual function decls
@@ -194,7 +199,11 @@ void jr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a);
 //misc instructions (depends)
 void lhi(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
 void llo(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
-void mfhi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
-void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt); //reg_instructions
+void mfhi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+void slt(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+void sltu(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
+void slti(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
+void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions

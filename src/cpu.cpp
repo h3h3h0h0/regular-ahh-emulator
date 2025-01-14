@@ -115,7 +115,7 @@ void lb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID BYTEREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
+        oss<<hex<<uppercase<<"INVALID BYTEREAD PC: "<<(unsigned int)c.pc<<" BASE: "<<(int)c.regs[rs]<<" OFFSET: "<<(int)imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -124,7 +124,7 @@ void lbu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID UBYTEREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
+        oss<<hex<<uppercase<<"INVALID UBYTEREAD PC: "<<(unsigned int)c.pc<<" BASE: "<<(int)c.regs[rs]<<" OFFSET: "<<(int)imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -133,7 +133,7 @@ void lh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID HALFREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
+        oss<<hex<<uppercase<<"INVALID HALFREAD PC: "<<(unsigned int)c.pc<<" BASE: "<<(int)c.regs[rs]<<" OFFSET: "<<(int)imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -142,7 +142,7 @@ void lhu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID UHALFREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
+        oss<<hex<<uppercase<<"INVALID UHALFREAD PC: "<<(unsigned int)c.pc<<" BASE: "<<(int)c.regs[rs]<<" OFFSET: "<<(int)imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -151,7 +151,7 @@ void lw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID WORDREAD PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
+        oss<<hex<<uppercase<<"INVALID WORDREAD PC: "<<(unsigned int)c.pc<<" BASE: "<<(int)c.regs[rs]<<" OFFSET: "<<(int)imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -160,7 +160,7 @@ void sb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
+        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<(unsigned int)c.pc<<" BASE: "<<(int)c.regs[rs]<<" OFFSET: "<<(int)imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -169,7 +169,7 @@ void sh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
+        oss<<hex<<uppercase<<"INVALID HALFSTORE PC: "<<(unsigned int)c.pc<<" BASE: "<<(int)c.regs[rs]<<" OFFSET: "<<(int)imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -178,7 +178,7 @@ void sw(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID BYTESTORE PC: "<<c.pc<<" BASE: "<<c.regs[rs]<<" OFFSET: "<<imm;
+        oss<<hex<<uppercase<<"INVALID WORDSTORE PC: "<<(unsigned int)c.pc<<" BASE: "<<(int)c.regs[rs]<<" OFFSET: "<<(int)imm;
         c.errors.push_back(oss.str());
     }
 }
@@ -239,17 +239,33 @@ void lhi(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
 void llo(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     c.regs[rt] = (c.regs[rt]&HIMASK)+imm;
 }
-void mfhi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
+void mfhi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
     c.regs[rt] = c.hi;
 }
-void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
+void mflo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
     c.regs[rt] = c.lo;
 }
-void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
+void mthi(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
     c.hi = c.regs[rt];
 }
-void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt) {
+void mtlo(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
     c.lo = c.regs[rt];
+}
+void slt(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
+    if(c.regs[rs] < c.regs[rt]) c.regs[rd] = 1;
+    else c.regs[rd] = 0;
+}
+void sltu(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
+    if((uint32_t)c.regs[rs] < (uint32_t)c.regs[rt]) c.regs[rd] = 1;
+    else c.regs[rd] = 0;
+}
+void slti(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    if(c.regs[rs] < (int32_t)imm) c.regs[rt] = 1;
+    else c.regs[rt] = 0;
+}
+void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
+    if((uint32_t)c.regs[rs] < (uint32_t)imm) c.regs[rt] = 1;
+    else c.regs[rt] = 0;
 }
 
 split_instruction make_split(uint32_t instr) {
@@ -271,21 +287,21 @@ string CPU::lookup(uint32_t inst) {
     ostringstream oss;
     if(si.o == 0) { //a REG instruction
         if(!reg_instructions.count(si.f)) return "INVALID";
-        oss<<reg_instructions[si.f].second<<dec<<" s="<<si.s<<" t="<<si.t<<" d="<<si.d<<" a="<<si.a;
+        oss<<reg_instructions[si.f].second<<dec<<" s="<<(int)si.s<<" t="<<(int)si.t<<" d="<<(int)si.d<<" a="<<(int)si.a;
         return oss.str();
     } else { //a ROOT instruction
         if(jmp_instructions.count(si.o)) {
-            oss<<jmp_instructions[si.o].second<<dec<<" imm="<<si.j_imm;
+            oss<<jmp_instructions[si.o].second<<dec<<" imm="<<(int)si.j_imm;
             return oss.str();
         } else if(imm_instructions.count(si.o)) {
-            oss<<imm_instructions[si.f].second<<dec<<" s="<<si.s<<" t="<<si.t<<" imm="<<si.i_imm;
+            oss<<imm_instructions[si.o].second<<dec<<" s="<<(int)si.s<<" t="<<(int)si.t<<" imm="<<(int)si.i_imm;
             return oss.str();
         } else return "INVALID";
     }
 }
 
 string CPU::lookup_current() {
-    lookup(current_instruction);
+    return lookup(current_instruction);
 }
 
 void CPU::run() {}
@@ -361,5 +377,60 @@ void CPU::remove_breakpoint(uint32_t location) {
     if(breakpoints.count(location)) breakpoints.erase(location);
 }
 
-CPU::CPU(Memory *m) {}
-CPU::~CPU() {}
+CPU::CPU(Memory *m) {
+    //put in the functions for running operations
+    //register instructions
+    reg_instructions[0b000000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&sll, "sll");
+    reg_instructions[0b000010] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&srl, "srl");
+    reg_instructions[0b000011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&sra, "sra");
+    reg_instructions[0b000100] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&sllv, "sllv");
+    reg_instructions[0b000110] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&srlv, "srlv");
+    reg_instructions[0b000111] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&srav, "srav");
+    reg_instructions[0b001000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&jr, "jr");
+    reg_instructions[0b001001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&jalr, "jalr");
+    reg_instructions[0b010000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&mfhi, "mfhi");
+    reg_instructions[0b010001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&mthi, "mthi");
+    reg_instructions[0b010010] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&mflo, "mflo");
+    reg_instructions[0b010011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&mtlo, "mtlo");
+    reg_instructions[0b011000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&mult, "mult");
+    reg_instructions[0b011001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&multu, "multu");
+    reg_instructions[0b011010] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&div, "div");
+    reg_instructions[0b011011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&divu, "divu");
+    reg_instructions[0b100000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&add, "add");
+    reg_instructions[0b100001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&addu, "addu");
+    reg_instructions[0b100010] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&sub, "sub");
+    reg_instructions[0b100011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&subu, "subu");
+    reg_instructions[0b100100] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&aand, "and");
+    reg_instructions[0b100101] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&oor, "or");
+    reg_instructions[0b100110] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&xxor, "xor");
+    reg_instructions[0b100111] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&nor, "nor");
+    reg_instructions[0b101010] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&slt, "slt");
+    reg_instructions[0b101011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, uint8_t, uint8_t), string>(&sltu, "sltu");
+    //root instructions
+    jmp_instructions[0b000010] = make_pair<void(*)(CPU&, int32_t), string>(&jmp, "j");
+    jmp_instructions[0b000011] = make_pair<void(*)(CPU&, int32_t), string>(&jal, "jal");
+    imm_instructions[0b000100] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&beq, "beq");
+    imm_instructions[0b000101] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&bne, "bne");
+    imm_instructions[0b000110] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&blez, "blez");
+    imm_instructions[0b000111] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&bgtz, "bgtz");
+    imm_instructions[0b001000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&addi, "addi");
+    imm_instructions[0b001001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&addiu, "addiu");
+    imm_instructions[0b001010] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&slti, "slti");
+    imm_instructions[0b001011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sltiu, "sltiu");
+    imm_instructions[0b001100] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&andi, "andi");
+    imm_instructions[0b001101] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&ori, "ori");
+    imm_instructions[0b001110] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&xori, "xori");
+    imm_instructions[0b011000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&llo, "llo");
+    imm_instructions[0b011001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lhi, "lhi");
+    jmp_instructions[0b011010] = make_pair<void(*)(CPU&, int32_t), string>(&trap, "trap");
+    imm_instructions[0b100000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lb, "lb");
+    imm_instructions[0b100001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lh, "lh");
+    imm_instructions[0b100011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lw, "lw");
+    imm_instructions[0b100100] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lbu, "lbu");
+    imm_instructions[0b100101] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lhu, "lhu");
+    imm_instructions[0b101000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sb");
+    imm_instructions[0b101001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sh");
+    imm_instructions[0b101011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sw");
+
+    mem = m; //haha this is comically small
+}
