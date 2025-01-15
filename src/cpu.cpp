@@ -268,6 +268,32 @@ void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     else c.regs[rt] = 0;
 }
 
+//system calls
+void print_int(CPU &c) {
+    c.out<<dec<<(int)c.regs[4];
+}
+void print_str(CPU &c) {
+    c.out<<"PRINT STRING CALLED"; //placeholder
+}
+void read_int(CPU &c) {
+    c.in>>c.regs[2];
+}
+void read_str(CPU &c) {
+    return; //placeholder
+}
+void exit(CPU &c) {
+    c.out<<"\nPROGRAM TERMINATED!"<<endl;
+    c.state = DONE;
+}
+void print_byte(CPU &c) {
+    c.out<<(char)c.regs[4];
+}
+void read_byte(CPU &c) {
+    char cha;
+    c.in>>cha;
+    c.regs[2] = cha;
+}
+
 split_instruction make_split(uint32_t instr) {
     split_instruction si;
     si.o = ((uint32_t)(instr&OMASK))>>OSHIFT;
@@ -431,6 +457,15 @@ CPU::CPU(Memory *m) {
     imm_instructions[0b101000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sb");
     imm_instructions[0b101001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sh");
     imm_instructions[0b101011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sw");
+
+    //system calls
+    syscalls[1] = print_int;
+    syscalls[4] = print_str;
+    syscalls[5] = read_int;
+    syscalls[8] = read_str;
+    syscalls[10] = exit;
+    syscalls[101] = print_byte;
+    syscalls[102] = read_byte;
 
     mem = m; //haha this is comically small
 }

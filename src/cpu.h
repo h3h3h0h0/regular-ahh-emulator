@@ -54,6 +54,9 @@ class CPU {
     //separating the loading and execution stages allows for the checking of instruction decoding
     uint32_t current_instruction;
 
+    ostream &out = cout;
+    istream &in = cin;
+
     public:
     string lookup(uint32_t inst);
     string lookup_current();
@@ -141,6 +144,16 @@ class CPU {
     friend void sltu(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
     friend void slti(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
     friend void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
+
+    //system calls
+    friend void print_int(CPU &c); //trap 1
+    friend void print_str(CPU &c); //trap 4
+    friend void read_int(CPU &c); //trap 5
+    friend void read_str(CPU &c); //trap 8
+    friend void exit(CPU &c); //trap 10
+    friend void print_byte(CPU &c); //trap 101
+    friend void read_byte(CPU &c); //trap 102
+
 };
 
 //actual function decls
@@ -207,3 +220,12 @@ void slt(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructi
 void sltu(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
 void slti(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
 void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
+
+//system calls
+void print_int(CPU &c); //trap 1
+void print_str(CPU &c); //trap 4
+void read_int(CPU &c); //trap 5
+void read_str(CPU &c); //trap 8
+void exit(CPU &c); //trap 10
+void print_byte(CPU &c); //trap 101
+void read_byte(CPU &c); //trap 102

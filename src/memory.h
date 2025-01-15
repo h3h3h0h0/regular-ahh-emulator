@@ -50,6 +50,7 @@ class Memory { //for now, we will just have the maximum amount of memory without
     //bool disconnect_device(MMD *d);
     bool load(int32_t &reg, uint32_t base, int16_t offset, opsize s, bool sign=false);
     bool store(int32_t &reg, uint32_t base, int16_t offset, opsize s);
+    void load_to_main(int32_t *d, size_t start, size_t size);
     Memory(memrange mainmem);
     ~Memory();
 };
