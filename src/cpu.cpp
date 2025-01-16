@@ -330,7 +330,18 @@ string CPU::lookup_current() {
     return lookup(current_instruction);
 }
 
-void CPU::run() {}
+void CPU::run() {
+    while(!breakpoints.count(pc)) {
+        if(state != RUN) {
+            if(state == READY) goto doexec; //just in case we already loaded something and we want to start by execing it
+            else return;
+        }
+        load();
+        if(state != READY) return;
+        doexec:
+        execute();
+    }
+}
 void CPU::cap(uint32_t freq) {
     frequency_cap = freq;
 }
@@ -361,7 +372,7 @@ void CPU::execute() {
         if(jmp_instructions.count(si.o)) {
             jmp_instructions[si.o].first(*this, si.j_imm);
         } else if(imm_instructions.count(si.o)) {
-            imm_instructions[si.f].first(*this, si.s, si.t, si.i_imm);
+            imm_instructions[si.o].first(*this, si.s, si.t, si.i_imm);
         } else valid = false;
     }
     regs[0] = 0; //special property of register 0
@@ -468,4 +479,5 @@ CPU::CPU(Memory *m) {
     syscalls[102] = &read_byte;
 
     mem = m; //haha this is comically small
+    state = RUN;
 }
