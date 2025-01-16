@@ -459,13 +459,13 @@ CPU::CPU(Memory *m) {
     imm_instructions[0b101011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sw");
 
     //system calls
-    syscalls[1] = print_int;
-    syscalls[4] = print_str;
-    syscalls[5] = read_int;
-    syscalls[8] = read_str;
-    syscalls[10] = exit;
-    syscalls[101] = print_byte;
-    syscalls[102] = read_byte;
+    syscalls[1] = &print_int;
+    syscalls[4] = &print_str;
+    syscalls[5] = &read_int;
+    syscalls[8] = &read_str;
+    syscalls[10] = &exit;
+    syscalls[101] = &print_byte;
+    syscalls[102] = &read_byte;
 
     mem = m; //haha this is comically small
 }
