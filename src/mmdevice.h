@@ -5,7 +5,7 @@
 #include <map>
 #include <cstdint>
 #include <vector>
-#include "memory.h"
+#include "utils.h"
 
 using namespace std;
 
@@ -16,6 +16,6 @@ class MMD {
     public:
     virtual bool read(int32_t &reg, uint32_t add, opsize s) = 0;
     virtual bool write(int32_t &reg, uint32_t add, opsize s) = 0;
-    virtual vector<memrange> get_mappings();
+    virtual vector<memrange> get_mappings(bool direction); //true means in, false means out
     virtual ~MMD() {}
 };

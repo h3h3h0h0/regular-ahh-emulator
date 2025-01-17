@@ -1,5 +1,7 @@
 #include "memory.h"
 
+using namespace std;
+
 //bool Memory::connect_device(MMD *d) {
 //    return false; //implement later
 //}
@@ -53,7 +55,7 @@ bool Memory::store(int32_t &reg, uint32_t base, int16_t offset, opsize s) {
     return true;
 }
 Memory::Memory(memrange mainmem) {
-    data = new int32_t[1<<30];
+    data = new int32_t[1<<30]; //we just set the memory to whatever is addressable via uint32
     read_mapping.emplace_back(mainmem, -1);
     write_mapping.emplace_back(mainmem, -1);
 }
