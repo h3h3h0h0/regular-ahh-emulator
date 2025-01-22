@@ -6,7 +6,9 @@
 using namespace std;
 
 int main() {
-    Memory *m = new Memory({0x0, 0xFFFFFFFF});
+    vector<memrange> mmem;
+    mmem.push_back({0x0, 0xFFFFFFFF});
+    Memory *m = new Memory(mmem, mmem);
     CPU *c = new CPU(m);
     int32_t program = 0b01101000000000000000000000001010;
     cout<<c->lookup(program)<<endl;

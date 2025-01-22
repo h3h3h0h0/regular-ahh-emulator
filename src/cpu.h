@@ -40,8 +40,6 @@ class CPU {
 
     set<uint32_t> breakpoints; //run() will stop at these
 
-    map<int32_t, void(*)(CPU&)> syscalls; //system calls that happen when you call the trap instruction
-
     Memory *mem;
 
     int32_t regs[32];
@@ -127,7 +125,6 @@ class CPU {
     //jump instructions (goes in jmp_instructions)
     friend void jmp(CPU &c, int32_t imm);
     friend void jal(CPU &c, int32_t imm);
-    friend void trap(CPU &c, int32_t imm);
 
     //jump-register instructions (goes in reg_instructions)
     friend void jalr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a);
@@ -144,15 +141,6 @@ class CPU {
     friend void sltu(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
     friend void slti(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
     friend void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
-
-    //system calls
-    friend void print_int(CPU &c); //trap 1
-    friend void print_str(CPU &c); //trap 4
-    friend void read_int(CPU &c); //trap 5
-    friend void read_str(CPU &c); //trap 8
-    friend void exit(CPU &c); //trap 10
-    friend void print_byte(CPU &c); //trap 101
-    friend void read_byte(CPU &c); //trap 102
 
 };
 
@@ -203,7 +191,6 @@ void bne(CPU &c, uint8_t rs, uint8_t rt, int16_t imm);
 //jump instructions (goes in jmp_instructions)
 void jmp(CPU &c, int32_t imm);
 void jal(CPU &c, int32_t imm);
-void trap(CPU &c, int32_t imm);
 
 //jump-register instructions (goes in reg_instructions)
 void jalr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a);
@@ -220,12 +207,3 @@ void slt(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructi
 void sltu(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a); //reg_instructions
 void slti(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
 void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm); //imm_instructions
-
-//system calls
-void print_int(CPU &c); //trap 1
-void print_str(CPU &c); //trap 4
-void read_int(CPU &c); //trap 5
-void read_str(CPU &c); //trap 8
-void exit(CPU &c); //trap 10
-void print_byte(CPU &c); //trap 101
-void read_byte(CPU &c); //trap 102

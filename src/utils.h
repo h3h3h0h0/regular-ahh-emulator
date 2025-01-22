@@ -19,16 +19,22 @@ struct memrange {
         return (*this <=> second) == std::weak_ordering::equivalent;
     }
     
-bool validate(uint32_t &addr, opsize s) {
+std::weak_ordering validate(uint32_t &addr, opsize s) {
     if(s == WORD) {
-        if(addr > 4294967292) return false; //the other end goes past the addressing space!
-        return (addr >= start && addr+3 <= end);
+        if(addr > 4294967292) return std::weak_ordering::greater; //the other end overflows
+        else if(addr+3 > end) return std::weak_ordering::greater; 
+        else if(addr < start) return std::weak_ordering::less;
+        else return std::weak_ordering::equivalent;
     } else if(s == HALF) {
-        if(addr > 4294967294) return false; //the other end goes past the addressing space!
-        return (addr >= start && addr+1 <= end);
+        if(addr > 4294967294) return std::weak_ordering::greater; //the other end overflows
+        else if(addr+1 > end) return std::weak_ordering::greater; 
+        else if(addr < start) return std::weak_ordering::less;
+        else return std::weak_ordering::equivalent;
     } else {
         //for a byte, any address will not cause overflow
-        return (addr >= start && addr <= end);
+        if(addr > end) return std::weak_ordering::greater;
+        else if(addr < start) return std::weak_ordering::less;
+        else return std::weak_ordering::equivalent;
     }
 }
 };

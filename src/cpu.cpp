@@ -213,16 +213,6 @@ void jal(CPU &c, int32_t imm) {
     c.regs[31] = c.pc;
     c.pc += (imm<<2);
 }
-void trap(CPU &c, int32_t imm) {
-    if(!c.syscalls.count(imm)) { //do we have an actual syscall registered?
-        c.state = ERROR;
-        ostringstream oss;
-        oss<<hex<<uppercase<<"INVALID SYSCALL PC: "<<c.pc<<" NUMBER: "<<imm;
-        c.errors.push_back(oss.str());
-    }
-    c.syscalls[imm](c);
-}
-
 //jump-register instructions (goes in reg_instructions)
 void jalr(CPU &c, uint8_t rd, uint8_t rs, uint8_t rt, uint8_t a) {
     c.regs[31] = c.pc;
@@ -266,32 +256,6 @@ void slti(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
 void sltiu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     if((uint32_t)c.regs[rs] < (uint32_t)imm) c.regs[rt] = 1;
     else c.regs[rt] = 0;
-}
-
-//system calls
-void print_int(CPU &c) {
-    c.out<<dec<<(int)c.regs[4];
-}
-void print_str(CPU &c) {
-    c.out<<"PRINT STRING CALLED"; //placeholder
-}
-void read_int(CPU &c) {
-    c.in>>c.regs[2];
-}
-void read_str(CPU &c) {
-    return; //placeholder
-}
-void exit(CPU &c) {
-    c.out<<"\nPROGRAM TERMINATED!"<<endl;
-    c.state = DONE;
-}
-void print_byte(CPU &c) {
-    c.out<<(char)c.regs[4];
-}
-void read_byte(CPU &c) {
-    char cha;
-    c.in>>cha;
-    c.regs[2] = cha;
 }
 
 split_instruction make_split(uint32_t instr) {
@@ -459,7 +423,6 @@ CPU::CPU(Memory *m) {
     imm_instructions[0b001110] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&xori, "xori");
     imm_instructions[0b011000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&llo, "llo");
     imm_instructions[0b011001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lhi, "lhi");
-    jmp_instructions[0b011010] = make_pair<void(*)(CPU&, int32_t), string>(&trap, "trap");
     imm_instructions[0b100000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lb, "lb");
     imm_instructions[0b100001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lh, "lh");
     imm_instructions[0b100011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&lw, "lw");
@@ -468,15 +431,6 @@ CPU::CPU(Memory *m) {
     imm_instructions[0b101000] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sb");
     imm_instructions[0b101001] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sh");
     imm_instructions[0b101011] = make_pair<void(*)(CPU&, uint8_t, uint8_t, int16_t), string>(&sb, "sw");
-
-    //system calls
-    syscalls[1] = &print_int;
-    syscalls[4] = &print_str;
-    syscalls[5] = &read_int;
-    syscalls[8] = &read_str;
-    syscalls[10] = &exit;
-    syscalls[101] = &print_byte;
-    syscalls[102] = &read_byte;
 
     mem = m; //haha this is comically small
     state = RUN;
