@@ -111,7 +111,7 @@ void xori(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
 
 //memory load and store operations (goes in imm_instructions)
 void lb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
-    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, BYTE);
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, BYTE, true);
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
@@ -120,7 +120,7 @@ void lb(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     }
 }
 void lbu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
-    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, BYTE, true);
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, BYTE, false);
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
@@ -129,7 +129,7 @@ void lbu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     }
 }
 void lh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
-    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, HALF);
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, HALF, true);
     if(!result) {
         c.state = ERROR;
         ostringstream oss;
@@ -138,7 +138,7 @@ void lh(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
     }
 }
 void lhu(CPU &c, uint8_t rs, uint8_t rt, int16_t imm) {
-    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, HALF, true);
+    bool result = c.mem->load(c.regs[rt], c.regs[rs], imm, HALF, false);
     if(!result) {
         c.state = ERROR;
         ostringstream oss;

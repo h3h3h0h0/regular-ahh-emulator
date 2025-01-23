@@ -1,8 +1,27 @@
 #include "memory.h"
 
+#define KUSEG 0x00000000
+#define KSEG0 0x80000000
+#define KSEG1 0xA0000000
+#define KSEG2 0xC0000000
+
 using namespace std;
 
-int get_device(vector<pair<memrange, int>> &mp, uint32_t addr, opsize s) { //memory ranges MUST be sorted and non-overlapping
+uint32_t Memory::get_physical(uint32_t virt) { //we will emulate a non-MMU version of the R3000 in terms of memory
+    if(virt < KSEG0) {
+        //KUSEG will be "moved" to the top 2GB
+        return virt+KSEG0;
+    } else if(virt < KSEG1) {
+        return virt-KSEG0; //maps to first 512MB
+    } else if(virt < KSEG2) {
+        return virt-KSEG1;
+    } else {
+        //KSEG2 will take up the top of memory
+        return virt;
+    }
+}
+
+int get_device(vector<pair<memrange, int64_t>> &mp, uint32_t addr, opsize s) { //memory ranges MUST be sorted and non-overlapping
     int start = 0;
     int end = mp.size()-1;
     int cur = (start+end)/2;
@@ -21,7 +40,7 @@ int get_device(vector<pair<memrange, int>> &mp, uint32_t addr, opsize s) { //mem
     if(res == weak_ordering::equivalent) return mp[cur].second;
     return -2; //since -1 is taken by main memory
 }
-int get_idx(vector<pair<memrange, int>> &mp, memrange mr) { //get the insertion index of a memory range, or -1 if it cannot be inserted without overlap
+int get_idx(vector<pair<memrange, int64_t>> &mp, memrange mr) { //get the insertion index of a memory range, or -1 if it cannot be inserted without overlap
     if(mp.size() == 0) return 0;
     int start = 0;
     int end = mp.size()-1;
@@ -50,16 +69,16 @@ int get_idx(vector<pair<memrange, int>> &mp, memrange mr) { //get the insertion 
 }
 
 bool Memory::connect_device(MMD *d) {
-    int ndev_id = last_dev_id;
-    while(devices.count(ndev_id)) ndev_id++;
-    vector<pair<memrange, int>> rcopy = read_mapping; //we need to easily roll back the changes we try out
-    vector<pair<memrange, int>> wcopy = write_mapping;
+    int ndev_id = d->get_uid();
+    if(devices.count(ndev_id)) return false; //device with this UID already exists!
+    vector<pair<memrange, int64_t>> rcopy = read_mapping; //we need to easily roll back the changes we try out
+    vector<pair<memrange, int64_t>> wcopy = write_mapping;
     vector<memrange> newreads = d->get_reads();
     vector<memrange> newwrites = d->get_writes();
     for(int i = 0; i < newreads.size(); i++) {
         int idx = get_idx(rcopy, newreads[i]);
         if(idx == -1) return false;
-        pair<memrange, int> to_insert;
+        pair<memrange, int64_t> to_insert;
         to_insert.first = newreads[i];
         to_insert.second = ndev_id;
         rcopy.insert(rcopy.begin()+idx, to_insert);
@@ -73,18 +92,13 @@ bool Memory::connect_device(MMD *d) {
         wcopy.insert(wcopy.begin()+idx, to_insert);
     }
     devices[ndev_id] = d;
-    last_dev_id = ndev_id;
     read_mapping = rcopy;
     write_mapping = wcopy;
     return true;
 }
 bool Memory::disconnect_device(MMD *d) {
-    int devid = -1;
-    map<int, MMD*>::iterator it;
-    for(it = devices.begin(); it != devices.end(); it++) {
-        if(it->second == d) devid = it->first;
-    }
-    if(devid == -1) return false; //no such device
+    int devid = d->get_uid();
+    if(!devices.count(devid)) return false; //device does not exist
     devices.erase(devid);
     int idx = 0;
     while(idx < read_mapping.size()) {
@@ -109,8 +123,11 @@ bool Memory::load(int32_t &reg, uint32_t base, int16_t offset, opsize s, bool si
     if(s == HALF && combined%2 != 0) return false;
     else if(s == WORD && combined%4 != 0) return false;
 
+    //address translation
+    combined = get_physical(combined);
+
     //check for device loads
-    int devid = get_device(read_mapping, (uint32_t)combined, s);
+    int64_t devid = get_device(read_mapping, (uint32_t)combined, s);
     if(devid >= 0) return devices[devid]->read(reg, (uint32_t)combined, s);
     else if(devid == -2) return false; //we couldn't find any mapping
     //when mapping is -1, means main memory
@@ -137,8 +154,11 @@ bool Memory::store(int32_t &reg, uint32_t base, int16_t offset, opsize s) {
     if(s == HALF && combined%2 != 0) return false;
     else if(s == WORD && combined%4 != 0) return false;
 
+    //address translation
+    combined = get_physical(combined);
+
     //check for device stores
-    int devid = get_device(write_mapping, (uint32_t)combined, s);
+    int64_t devid = get_device(write_mapping, (uint32_t)combined, s);
     if(devid >= 0) return devices[devid]->write(reg, (uint32_t)combined, s);
     else if(devid == -2) return false; //we couldn't find any mapping
     //when mapping is -1, means main memory
@@ -156,10 +176,9 @@ bool Memory::store(int32_t &reg, uint32_t base, int16_t offset, opsize s) {
     }
     return true;
 }
-Memory::Memory(vector<memrange> mainmem_read, vector<memrange> mainmem_write) { //sometimes there are sections of main memory that are read only (such as parts which are mapped to ROM for startup code)
+Memory::Memory(vector<memrange> mainmem_read, vector<memrange> mainmem_write): data(new int32_t[1<<30]) { //sometimes there are sections of main memory that are read only (such as parts which are mapped to ROM for startup code)
     //instead of returning error, we will simply not add overlapping main memory segments
     //it's bad practice though to pass those in
-    data = new int32_t[1<<30]; //we just set the memory to whatever is addressable via uint32
     for(int i = 0; i < mainmem_read.size(); i++) {
         int idx = get_idx(read_mapping, mainmem_read[i]);
         if(idx == -1) continue;
@@ -176,7 +195,6 @@ Memory::Memory(vector<memrange> mainmem_read, vector<memrange> mainmem_write) { 
         to_insert.second = -1;
         write_mapping.insert(write_mapping.begin()+idx, to_insert);
     }
-    last_dev_id = 0;
 }
 Memory::~Memory() {
     delete [] data;

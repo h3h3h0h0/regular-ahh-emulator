@@ -6,6 +6,11 @@ enum opsize { //how many times do we have to divide the word?
     HALF = 1,
     BYTE = 2
 };
+enum mem_status { //not used currently
+    SUCCESS = 0,
+    PAGEFAULT = 1,
+    INVACCESS = 2 //improper alignment or out of bounds
+};
 
 struct memrange {
     uint32_t start; //first address that is valid in this range

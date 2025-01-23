@@ -11,10 +11,11 @@ using namespace std;
 
 class MMD {
     protected:
-    uint64_t uid;
+    int64_t uid;
     MMD(uint64_t id) {uid = id;}
     public:
-    virtual bool read(int32_t &reg, uint32_t add, opsize s) = 0;
+    int64_t get_uid() {return uid;}
+    virtual bool read(int32_t &reg, uint32_t add, opsize s, bool sign=true) = 0;
     virtual bool write(int32_t &reg, uint32_t add, opsize s) = 0;
     virtual vector<memrange> get_reads();
     virtual vector<memrange> get_writes();
